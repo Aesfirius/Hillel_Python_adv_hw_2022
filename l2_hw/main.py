@@ -32,15 +32,21 @@ class RouteQualifier(object):
         path_len = len(vpath)
 
         if path_len == 1 and 'search' in vpath:
+            vpath.pop(0)
             return self.search
 
         elif path_len == 2 and 'artist' in vpath:
-            cherrypy.request.params['artist_name'] = vpath[1]
+            vpath.pop(0)
+            cherrypy.request.params['artist_name'] = vpath.pop(0)
             return self.artist
 
         elif path_len == 4:
             if 'album' in vpath:
-                print(cherrypy.request.params)
+                vpath.pop(0)
+                cherrypy.request.params['artist_name'] = vpath.pop(0)
+                vpath.pop(0)
+                cherrypy.request.params['album'] = vpath.pop(0)
+                print(vpath)
                 return self.album
             # elif 'song' in vpath:
             #     return self.song
@@ -88,10 +94,10 @@ class Artist(object):
             f'<br>'
 
 
-@cherrypy.popargs('artist_name', 'album', 'a', 'b')
+# @cherrypy.popargs('artist_name', 'album')
 class Album(object):
     @cherrypy.expose
-    def index(self, artist_name, album, a, b):
+    def index(self, artist_name, album):
         return template() % f'{artist_name, album}' \
             f'<h3>About album: {"album"} by artist: {"artist"}<h3>' \
             f'<br>' \
