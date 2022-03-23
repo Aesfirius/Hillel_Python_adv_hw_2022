@@ -22,15 +22,13 @@ def template():
 class RouteQualifier(object):
     def __init__(self):
         self.all_artists = AllArtists()
-        self.artist = Artist()
+        self.artist_title = Artist()
         self.album = Album()
-        # self.song = Song()
+        self.song = Song()
         self.search = Search()
 
     def _cp_dispatch(self, vpath):
-        print(vpath)
         path_len = len(vpath)
-
         if path_len == 1 and 'search' in vpath:
             vpath.pop(0)
             return self.search
@@ -38,20 +36,21 @@ class RouteQualifier(object):
         elif path_len == 2 and 'artist' in vpath:
             vpath.pop(0)
             cherrypy.request.params['artist_name'] = vpath.pop(0)
-            return self.artist
+            return self.artist_title
 
         elif path_len == 4:
+            vpath.pop(0)
+            cherrypy.request.params['artist_name'] = vpath.pop(0)
             if 'album' in vpath:
                 vpath.pop(0)
-                cherrypy.request.params['artist_name'] = vpath.pop(0)
-                vpath.pop(0)
                 cherrypy.request.params['album'] = vpath.pop(0)
-                print(vpath)
                 return self.album
-            # elif 'song' in vpath:
-            #     return self.song
+            elif 'song' in vpath:
+                vpath.pop(0)
+                cherrypy.request.params['song_title'] = vpath.pop(0)
+                return self.song
         else:
-            return AllArtists().index()
+            return vpath
 
     @cherrypy.expose
     def index(self):
@@ -76,8 +75,13 @@ class AllArtists(object):
             f'</ul>' \
             f'<br>' \
             f'<ul>' \
-            f'<li><a href="./artist/acdc/album/tnt?artist_name=AC/DC&album=T.N.T">AC/DC    album: T.N.T</a></li>' \
-            f'<li><a href="./artist/simple/album/simplest">Simple    album: Simplest</a></li>' \
+            f'<li><a href="./artist/acdc/album/tnt?artist_name=AC/DC&album=T.N.T">AC/DC with album: T.N.T</a></li>' \
+            f'<li><a href="./artist/simple/album/simplest">Simple with album: Simplest</a></li>' \
+            f'</ul>' \
+            f'<br>' \
+            f'<ul>' \
+            f'<li><a href="./artist/acdc/song/tnt?artist_name=AC/DC&song_title=T.N.T">AC/DC with song: T.N.T</a></li>' \
+            f'<li><a href="./artist/simple/song/simple_dimple_song">Simple with song: Simple-Dimple</a></li>' \
             f'</ul>'
 
 
@@ -94,22 +98,26 @@ class Artist(object):
             f'<br>'
 
 
-# @cherrypy.popargs('artist_name', 'album')
+@cherrypy.popargs('artist_name', 'album')
 class Album(object):
     @cherrypy.expose
     def index(self, artist_name, album):
-        return template() % f'{artist_name, album}' \
-            f'<h3>About album: {"album"} by artist: {"artist"}<h3>' \
+        return template() % f'' \
+            f'<h3>About album: {album} by artist: {artist_name}<h3>' \
             f'<br>' \
             f'<a href="/">Back --> Home</a>' \
             f'<br>'
 
 
-# @cherrypy.popargs('artist_name', 'song_title')
-# class Song(object):
-#     @cherrypy.expose
-#     def index(self, artist, title):
-#         return 'Song about %s by %s...' % (title, artist)
+@cherrypy.popargs('artist_name', 'song_title')
+class Song(object):
+    @cherrypy.expose
+    def index(self, artist_name, song_title):
+        return template() % f'' \
+            f'<h3>About song: {song_title} by artist: {artist_name}<h3>' \
+            f'<br>' \
+            f'<a href="/">Back --> Home</a>' \
+            f'<br>'
 
 
 class Search(object):
