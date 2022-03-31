@@ -51,15 +51,15 @@ class RouteQualifier(object):
 
         elif path_len == 2 and 'artist' == vpath[0]:
             if 'update_song' == vpath[1]:
-                vpath = str(self.crumbs['url']).split('/')[1:-1]
+                # vpath = str(self.crumbs['url']).split('/')[1:-1]
                 vpath.pop(0)
-                cherrypy.request.params['artist_name'] = vpath.pop(0)
                 vpath.pop(0)
-                cherrypy.request.params['song_title'] = vpath.pop(0)
+                cherrypy.request.params['artist_name'] = self.crumbs['artist']
+                cherrypy.request.params['song_title'] = self.crumbs['song']
                 return self.song.update_song
             elif 'new_song' == vpath[1]:
                 vpath.pop(0)
-                cherrypy.request.params['artist_name'] = vpath.pop(0)
+                vpath.pop(0)
                 return self.song.new_song
             elif 'delete_song' == vpath[1]:
                 vpath.pop(0)
@@ -170,86 +170,61 @@ class Song(object):
                  new_song_track_number=None,
                  ):  # PUT
 
-        # check important song data
-        if new_song_title is not None \
-                and new_song_year is not None\
-                and new_song_text is not None\
-                and new_song_lang is not None:
-            # INSERT IN DB
-            db_req(query_insert_new_song)
-            pass
-        pass
+        # defaults
+        d_map = 000
 
-        #
-        #
-        # # INSERT IN DB
-        # self.data['artists'][u_artist_name] = {'artist_name': kwargs['new_artist_name'],
-        #                                        'songs': {u_song_title: {'song_title': kwargs['new_song_title'],
-        #                                                                 'song_text': kwargs['new_song_text']}}}
-        # # GET FROM DB
-        # ar_k = self.data["artists"][u_artist_name]
-        # artist = ar_k["artist_name"]
-        # song_title = ar_k["songs"][u_song_title]["song_title"]
-        # song_text = ar_k["songs"][u_song_title]["song_text"]
-        # print(ar_k)
-        # return template() % f'' \
-        #     f'<h3>About new song: {song_title} <br>by new artist: {artist}<h3>' \
-        #     f'<br>' \
-        #     f'<h4>New Song text</h4>' \
-        #     f'<p>{song_text}</p>' \
-        #     f'<br>' \
-        #     f'<br>' \
-        #     f'<a href="/">Back --> Home</a>' \
-        #     f'<br>'
+        # add song
+        song_tuple = (new_song_title, int(new_song_year), new_song_text, new_song_lang)
+        if None not in (new_song_title, new_song_year, new_song_text, new_song_lang):
+            d_map += 100
+
+        # add album
+        album_tuple = (new_album_title, int(new_album_year), new_album_info)
+        if None not in (new_album_title, new_album_year):
+            d_map += 10
+
+        # add artist
+        artist_tuple = (new_artist_name, new_artist_info)
+        if new_artist_name is not None:
+            d_map += 1
+
+        # add to track list
+        if d_map == 111:
+            # add song
+            db_req(query_insert_new_song(*song_tuple))
+            new_song_id = db_req(get_last_song_id())[0]['id_song']
+            # add album
+            db_req(query_insert_new_album(*album_tuple))
+            new_album_id = db_req(get_last_album_id())[0]['id_album']
+            # add artist
+            db_req(query_insert_new_artist(*artist_tuple))
+            new_artist_id = db_req(get_last_artist_id())[0]['id_artist']
+
+            # add track list
+            track_list_tuple = (int(new_artist_id), int(new_song_id), int(new_album_id), int(new_song_track_number))
+            db_req(query_insert_new_track_list(*track_list_tuple))
+            return template(song_page_body_new_success(new_artist_name, new_song_title))
 
     @cherrypy.expose
-    def update_song(self, *args, **kwargs):  # POST
-        pass
-        # self.data["artists"][kwargs["artist_name"]]["songs"][kwargs["song_title"]]["song_text"] = kwargs["new_song_text"]
-        # ar_k = self.data["artists"][kwargs["artist_name"]]
-        # artist = ar_k["artist_name"]
-        # song_title = ar_k["songs"][kwargs["song_title"]]["song_title"]
-        # song_text = ar_k["songs"][kwargs["song_title"]]["song_text"]
-        # print(ar_k)
-        # return template() % f'' \
-        #     f'<h3>About updated song: {song_title} <br>by artist: {artist}<h3>' \
-        #     f'<br>' \
-        #     f'<h4>Updated Song text</h4>' \
-        #     f'<p>{song_text}</p>' \
-        #     f'<br>' \
-        #     f'<br>' \
-        #     f'<a href="/">Back --> Home</a>' \
-        #     f'<br>'
+    def update_song(self, **kwargs):  # POST
+        db_req(query_update_song_text(kwargs['song_title'], kwargs['new_song_text']))
+        return template(song_page_body_update_text(kwargs['artist_name'], kwargs['song_title']))
 
     @cherrypy.expose
     def delete_song(self, artist_name, song_title):  # DELETE
+        # todo ! QUERY !
+        # получить Id_song
+        # удалить строку из таблицы track list
+        # удалить строку из таблицы song
         return template(song_page_body_deleted(artist_name, song_title))
-        # self.data["artists"][kwargs["artist_name"]]["songs"].pop(kwargs["song_title"], None)
-        # ar_k = self.data["artists"][kwargs["artist_name"]]
-        # artist = ar_k["artist_name"]
-        # song_title = kwargs["song_title"]
-        # print(ar_k)
-        # return template() % f'' \
-        #     f'<h3>Deleted song: {song_title} <br>by artist: {artist}<h3>' \
-        #     f'<br>' \
-        #     f'<br>' \
-        #     f'<a href="/">Back --> Home</a>' \
-        #     f'<br>'
 
 
 class Search(object):
     @cherrypy.expose
     def index(self, search_text):
-        pass
-        # if search_text == '':
-        #     search_text = 'Go Back and take a cup of coffee'
-        # return template() % f'' \
-        #     f'<h3>You searching:</h3>' \
-        #     f'<br>' \
-        #     f'<h3><b>{search_text}</b></h3>' \
-        #     f'<br>' \
-        #     f'<a href="/">Back --> Home</a>' \
-        #     f'<br>'
+        if search_text == '':
+            search_text = 'Go Back and take a cup of coffee'
+        return template(search_page_body(search_text))
 
 
 if __name__ == '__main__':

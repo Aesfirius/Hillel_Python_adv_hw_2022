@@ -161,7 +161,6 @@ def album_page_body(artist_name, album_title, data_album, data_songs):
     n_artist_name = f_from_url(urllib.parse.unquote_plus(artist_name))
     n_album_title = f_from_url(urllib.parse.unquote_plus(album_title))
     songs_list = ''.join([f'<li><a href="/artist/{artist_name}/song/{f_for_url(urllib.parse.quote_plus(song["song_title"]))}/">{song["track_number"]}. {song["song_title"]}</a></li>' for song in data_songs] if len(data_songs) > 0 else '')
-
     return f"""
     <h3>Artist: {n_artist_name}</h3>
     <br>
@@ -235,14 +234,52 @@ def song_page_body(artist_name, album, song_title, data_song, song_text):
     """
 
 
+def song_page_body_new_success(artist_name, song_title):
+    return f"""
+    <h3>Song "{song_title}" of artist "{artist_name}" ==>> CREATED</h3>
+    <br>
+    <br>
+    <a href="/">Back --> Home</a>
+    <br>"""
+
+
+def song_page_body_update_text(artist_name, song_title):
+    return f"""
+    <h3>Song "{song_title}" of artist "{artist_name}" ==>> Lyrics UPDATED</h3>
+    <br>
+    <br>
+    <a href="/artist/{artist_name}/song/{song_title}/">Back --> Song</a>
+    <br>
+    <br>
+    <a href="/artist/{artist_name}/">Back --> Artist albums</a>
+    <br>
+    <br>
+    <a href="/">Back --> Home</a>
+    <br>"""
+
+
 def song_page_body_deleted(artist_name, song_title):
     u_artist_name = f_for_url(urllib.parse.quote_plus(artist_name))
     return f"""
     <h3>Song "{song_title}" of artist "{artist_name}" ==>> DELETED</h3>
     <br>
     <br>
+    <h3>Ha-Ha-Ha</h3>
+    <h4>We should have, but no.<h4>
+    <br>
+    <br>
     <a href="/artist/{u_artist_name}/">Back --> Artist albums</a>
     <br>
+    <br>
+    <a href="/">Back --> Home</a>
+    <br>"""
+
+
+def search_page_body(search_text):
+    return f"""
+    <h3>You searching:</h3>
+    <br>
+    <h3><b>{search_text}</b></h3>
     <br>
     <a href="/">Back --> Home</a>
     <br>"""
