@@ -1,21 +1,19 @@
-import urllib.parse
-from l4_hw.helpers import f_from_url, f_for_url
-
 
 def template(body):
-    return f'''
+    return f"""
     <html><body>
-    <h2>Hillel HW Lesson 4</h2>
+    <h2>Hillel HW Lesson 5</h2>
     <br>
     <br>
     {body}
     <br>
     <br>
-    </body></html>'''
+    </body></html>"""
 
 
 def home_page_body(db_resp):
-    artists_list = ''.join([f'<li><a href="/artist/{f_for_url(urllib.parse.quote_plus(artist["artist_name"]))}/">{artist["artist_name"]}</a></li>' for artist in db_resp])
+    artists_list = ''.join([f'<li><a href="/artist/{artist["id_artist"]}/">{artist["artist_name"]}</a></li>'
+                            for artist in db_resp])
     style_p_div = 'style="position: relative; height: 10;"'
     style_label = 'style="position: absolute; left: 0;"'
     style_input = 'style="position: absolute; left: 200;"'
@@ -134,12 +132,12 @@ def home_page_body(db_resp):
     '''
 
 
-def artist_page_body(artist_name, data_artist, data_albums, data_x_songs):
-    n_artist_name = f_from_url(urllib.parse.unquote_plus(artist_name))
-    albums_list = ''.join([f'<li><a href="/artist/{artist_name}/album/{f_for_url(urllib.parse.quote_plus(album["album_title"]))}/">{album["album_title"]}</a></li>' for album in data_albums] if len(data_albums) > 0 else '')
-    x_songs_list = ''.join([f'<li><a href="/artist/{artist_name}/song/{f_for_url(urllib.parse.quote_plus(song["song_title"]))}/">{song["song_title"]}</a></li>' for song in data_x_songs] if len(data_x_songs) > 0 else '')
+def artist_page_body(data_artist, data_albums, data_x_songs):
+    id_artist = data_artist[0]['id_artist']
+    albums_list = ''.join([f'<li><a href="/artist/{id_artist}/album/{album["id_album"]}/">{album["album_title"]}</a></li>' for album in data_albums] if len(data_albums) > 0 else '')
+    x_songs_list = ''.join([f'<li><a href="/artist/{id_artist}/song/{song["id_song"]}/">{song["song_title"]}</a></li>' for song in data_x_songs] if len(data_x_songs) > 0 else '')
     return f'''
-    <h3>Artist: {n_artist_name}</h3>
+    <h3>Artist: {data_artist[0]['artist_name']}</h3>
     <br>
     <h4>INFO:</h4>
     <p>{data_artist[0]['artist_info']}</p>
@@ -153,18 +151,16 @@ def artist_page_body(artist_name, data_artist, data_albums, data_x_songs):
     <ul>{x_songs_list}</ul>
     <br>
     <br>
-    <a href="/">Back --> Home</a>
+    <a href="/">Back ==>> Home</a>
     <br>'''
 
 
-def album_page_body(artist_name, album_title, data_album, data_songs):
-    n_artist_name = f_from_url(urllib.parse.unquote_plus(artist_name))
-    n_album_title = f_from_url(urllib.parse.unquote_plus(album_title))
-    songs_list = ''.join([f'<li><a href="/artist/{artist_name}/song/{f_for_url(urllib.parse.quote_plus(song["song_title"]))}/">{song["track_number"]}. {song["song_title"]}</a></li>' for song in data_songs] if len(data_songs) > 0 else '')
+def album_page_body(data_artist, data_album, data_songs):
+    songs_list = ''.join([f'<li><a href="/artist/{data_artist[0]["id_artist"]}/song/{song["id_song"]}/">{song["track_number"]}. {song["song_title"]}</a></li>' for song in data_songs] if len(data_songs) > 0 else '')
     return f"""
-    <h3>Artist: {n_artist_name}</h3>
+    <h3>Artist: {data_artist[0]['artist_name']}</h3>
     <br>
-    <h3>Album: <b>"{n_album_title}"</b> released in {data_album[0]['album_year']}</h3>
+    <h3>Album: <b>"{data_album[0]['album_title']}"</b> released on {data_album[0]['album_year']}</h3>
     <br>
     <h4>INFO:</h4>
     <p>{data_album[0]['album_info']}</p>
@@ -174,32 +170,32 @@ def album_page_body(artist_name, album_title, data_album, data_songs):
     <ul>{songs_list}</ul>
     <br>
     <br>
-    <a href="/artist/{artist_name}/">Back --> Artist albums</a>
+    <a href="/artist/{data_artist[0]['id_artist']}/">Back ==>> Artist albums</a>
     <br>
     <br>
-    <a href="/">Back --> Home</a>
+    <a href="/">Back ==>> Home</a>
     <br>"""
 
 
-def song_page_body(artist_name, album, song_title, data_song, song_text):
-    n_artist_name = f_from_url(urllib.parse.unquote_plus(artist_name))
-    n_song_title = f_from_url(urllib.parse.unquote_plus(song_title))
+def song_page_body(data_artist, data_album, data_song):
+    id_artist = data_artist[0]['id_artist']
+    song_text = data_song[0]['song_text'].replace('\n', '<br>')
 
     style_p_div = 'style="position: relative; height: 10;"'
     style_label = 'style="position: absolute; left: 0;"'
     style_input = 'style="position: absolute; left: 200;"'
-    conf_del = '<script> ' \
-               'function myFunction() { ' \
-               'if (confirm("Are you sure you want to delete song") == true) { ' \
-               'window.open("%s", name="_parent");}' \
-               'else {' \
-               'window.open(".", name="_parent");}' \
-               ';}' \
-               '</script>'
+    confirm_del = '<script> ' \
+                  'function myFunction() { ' \
+                  'if (confirm("Are you sure you want to delete song") == true) { ' \
+                  'window.open("%s", name="_parent");}' \
+                  'else {' \
+                  'window.open(".", name="_parent");}' \
+                  ';}' \
+                  '</script>'
     return f"""
-    <h3>Artist: {n_artist_name}</h3>
+    <h3>Artist: {data_artist[0]['artist_name']}</h3>
     <br>
-    <h3>Song: <b>"{n_song_title}"</b> released in {data_song[0]['song_year']}</h3>
+    <h3>Song: <b>"{data_song[0]['song_title']}"</b> released in {data_song[0]['song_year']}</h3>
     <br>
     <h3>Lyrics</h3>
     <br>
@@ -220,16 +216,16 @@ def song_page_body(artist_name, album, song_title, data_song, song_text):
     <br>
     <br>    
     <button style="width: 380px;" type="submit" value="Delete" onclick="myFunction()">Delete</button>
-    {conf_del % f"/artist/delete_song/?artist_name={artist_name}&song_title={song_title}"}
+    {confirm_del % f"/artist/delete_song/?id_artist={id_artist}&id_song={data_song[0]['id_song']}"}
     <br>
     <br>
-    <a href="/artist/{artist_name}/album/{album}/">Back --> Album songs</a>
+    <a href="/artist/{id_artist}/album/{data_album[0]['id_album']}/">Back ==>> Album songs</a>
     <br>
     <br>
-    <a href="/artist/{artist_name}/">Back --> Artist albums</a>
+    <a href="/artist/{id_artist}/">Back ==>> Artist albums</a>
     <br>
     <br>
-    <a href="/">Back --> Home</a>
+    <a href="/">Back ==>> Home</a>
     <br>
     """
 
@@ -239,39 +235,35 @@ def song_page_body_new_success(artist_name, song_title):
     <h3>Song "{song_title}" of artist "{artist_name}" ==>> CREATED</h3>
     <br>
     <br>
-    <a href="/">Back --> Home</a>
+    <a href="/">Back ==>> Home</a>
     <br>"""
 
 
-def song_page_body_update_text(artist_name, song_title):
+def song_page_body_update_text(data_artist, data_song):
+    id_artist = data_artist[0]['id_artist']
     return f"""
-    <h3>Song "{song_title}" of artist "{artist_name}" ==>> Lyrics UPDATED</h3>
+    <h3>Song "{data_song[0]['song_title']}" of artist "{data_artist[0]['artist_name']}" ==>> Lyrics UPDATED</h3>
     <br>
     <br>
-    <a href="/artist/{artist_name}/song/{song_title}/">Back --> Song</a>
+    <a href="/artist/{id_artist}/song/{data_song[0]['id_song']}/">Back ==>> Song</a>
     <br>
     <br>
-    <a href="/artist/{artist_name}/">Back --> Artist albums</a>
+    <a href="/artist/{id_artist}/">Back ==>> Artist albums</a>
     <br>
     <br>
-    <a href="/">Back --> Home</a>
+    <a href="/">Back ==>> Home</a>
     <br>"""
 
 
-def song_page_body_deleted(artist_name, song_title):
-    u_artist_name = f_for_url(urllib.parse.quote_plus(artist_name))
+def song_page_body_deleted(data_artist, data_song):
     return f"""
-    <h3>Song "{song_title}" of artist "{artist_name}" ==>> DELETED</h3>
+    <h3>Song "{data_song[0]['song_title']}" of artist "{data_artist[0]['artist_name']}" ==>> DELETED</h3>
     <br>
     <br>
-    <h3>Ha-Ha-Ha</h3>
-    <h4>We should have, but no.<h4>
+    <a href="/artist/{data_artist[0]['id_artist']}/">Back ==>> Artist albums</a>
     <br>
     <br>
-    <a href="/artist/{u_artist_name}/">Back --> Artist albums</a>
-    <br>
-    <br>
-    <a href="/">Back --> Home</a>
+    <a href="/">Back ==>> Home</a>
     <br>"""
 
 
@@ -281,5 +273,5 @@ def search_page_body(search_text):
     <br>
     <h3><b>{search_text}</b></h3>
     <br>
-    <a href="/">Back --> Home</a>
+    <a href="/">Back ==>> Home</a>
     <br>"""

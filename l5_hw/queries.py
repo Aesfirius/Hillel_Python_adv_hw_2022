@@ -40,65 +40,90 @@ def query_artists():
     ORDER BY artist_name;'''
 
 
-def query_artist(n_artist_name):
+def query_artist(id_artist):
     return f'''
-    SELECT artist.artist_name, artist.artist_info
+    SELECT artist.id_artist, artist.artist_name, artist.artist_info
     FROM artist
-    WHERE artist.artist_name = "{n_artist_name}"'''
+    WHERE artist.id_artist = "{id_artist}"'''
 
 
-def query_albums(n_artist_name):
+def query_artist_by_name(artist_name):
     return f'''
-    SELECT DISTINCT album.id_album, artist.artist_name, album.album_title, album.album_year
+    SELECT artist.id_artist, artist.artist_name, artist.artist_info
+    FROM artist
+    WHERE artist.artist_name = "{artist_name}"'''
+
+
+def query_albums(id_artist):
+    return f'''
+    SELECT DISTINCT artist.id_artist, artist.artist_name, album.id_album, album.album_title, album.album_year
     FROM rel_table
     INNER JOIN artist, album
     ON rel_table.id_artist = artist.id_artist
     AND rel_table.id_album = album.id_album
-    WHERE artist.artist_name = "{n_artist_name}"
+    WHERE artist.id_artist = "{id_artist}"
     ORDER BY album.album_year;'''
 
 
-def query_songs_not_in_albums(n_artist_name):
+def query_songs_not_in_albums(id_artist):
     return f'''
-    SELECT DISTINCT artist.artist_name, song.song_title, song.song_year
+    SELECT DISTINCT artist.id_artist, artist.artist_name, song.id_song, song.song_title, song.song_year
     FROM rel_table 
     INNER JOIN artist, song
     ON rel_table.id_artist = artist.id_artist
     AND rel_table.id_song = song.id_song
-    WHERE artist.artist_name = "{n_artist_name}"
+    WHERE artist.id_artist = "{id_artist}"
     AND rel_table.id_album is NULL
     ORDER BY song.song_year;'''
 
 
-def query_album_info(n_album_title):
+def query_album_info(id_album):
     return f'''
-    SELECT album.album_title, album.album_year, album.album_info
+    SELECT album.id_album, album.album_title, album.album_year, album.album_info
     FROM album 
-    WHERE album.album_title = "{n_album_title}"'''
+    WHERE album.id_album = "{id_album}"'''
 
 
-def query_album_songs(n_artist_name, n_album_title):
+def query_album_info_by_title(album_title):
     return f'''
-    SELECT song.song_title, song.song_year, rel_table.track_number 
+    SELECT album.id_album, album.album_title, album.album_year, album.album_info
+    FROM album 
+    WHERE album.album_title = "{album_title}"'''
+
+
+def query_album_songs(id_artist, id_album):
+    return f'''
+    SELECT artist.id_artist, album.id_album, song.id_song, song.song_title, song.song_year, rel_table.track_number 
     FROM rel_table 
     INNER JOIN artist, album, song
     ON rel_table.id_artist = artist.id_artist
     AND rel_table.id_album = album.id_album
     AND rel_table.id_song = song.id_song
-    WHERE artist.artist_name = "{n_artist_name}"
-    AND album.album_title = "{n_album_title}"
+    WHERE artist.id_artist = "{id_artist}"
+    AND album.id_album = "{id_album}"
     ORDER BY song.song_year;'''
 
 
-def query_song_data(n_artist_name, n_song_title):
+def query_song_data(id_artist, id_song):
     return f'''
-    SELECT DISTINCT song.song_title, song.song_year, song.song_text  
+    SELECT DISTINCT song.id_song, song.song_title, song.song_year, song.song_text  
     FROM rel_table 
     INNER JOIN artist, song
     ON rel_table.id_artist = artist.id_artist
     AND rel_table.id_song = song.id_song
-    WHERE artist.artist_name = "{n_artist_name}"
-    AND song.song_title = "{n_song_title}"'''
+    WHERE artist.id_artist = "{id_artist}"
+    AND song.id_song = "{id_song}"'''
+
+
+def query_song_data_by_title(id_artist, song_title):
+    return f'''
+    SELECT DISTINCT song.id_song, song.song_title, song.song_year, song.song_text  
+    FROM rel_table 
+    INNER JOIN artist, song
+    ON rel_table.id_artist = artist.id_artist
+    AND rel_table.id_song = song.id_song
+    WHERE artist.id_artist = "{id_artist}"
+    AND song.song_title = "{song_title}"'''
 
 
 def query_insert_new_song(*args):
@@ -125,17 +150,32 @@ def query_insert_new_artist(*args):
     VALUES {args}"""
 
 
-def query_insert_new_track_list(*args):
+def query_insert_new_track_list(track_list_params):
     # where -> (id_artist, id_song, id_album, track_number)
     # what  -> (new_artist_id, new_song_id, new_album_id, new_song_track_number)
     return f"""
-    INSERT INTO rel_table (id_artist, id_song, id_album, track_number)
-    VALUES {args}"""
+    INSERT INTO rel_table {tuple(track_list_params.keys())}
+    VALUES {tuple(track_list_params.values())}"""
 
 
 def query_update_song_text(*args):
-    # (song_title, new_song_text)
+    # (id_song, new_song_text)
     return f"""
     UPDATE song
     SET song_text = "{args[1]}"
-    WHERE song.song_title = "{args[0]}";"""
+    WHERE song.id_song = "{args[0]}";"""
+
+
+def query_delete_song_track_list(id_artist, id_song):
+    return f"""
+    DELETE 
+    FROM rel_table
+    WHERE rel_table.id_artist = {id_artist}
+    AND rel_table.id_song = {id_song};"""
+
+
+def query_delete_song_from_songs_table(id_song):
+    return f"""
+    DELETE 
+    FROM song
+    WHERE song.id_song = {id_song};"""

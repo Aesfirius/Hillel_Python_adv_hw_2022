@@ -1,17 +1,15 @@
 import os
-import urllib.parse
 import cherrypy
 import sqlite3
 
-from l4_hw.queries import *
-from l4_hw.view import *
-from l4_hw.helpers import f_from_url, f_for_url
+from l5_hw.queries import *
+from l5_hw.view import *
 
 """
 /
-/artist/<id_artist>
-/artist/<id_artist>/album/<id_album>
-/artist/<id_artist>/song/<id_song>
+/artist/<artist>
+/artist/<artist>/album/<album>
+/artist/<artist>/song/<song>
 /search
 """
 
@@ -51,11 +49,10 @@ class RouteQualifier(object):
 
         elif path_len == 2 and 'artist' == vpath[0]:
             if 'update_song' == vpath[1]:
-                # vpath = str(self.crumbs['url']).split('/')[1:-1]
                 vpath.pop(0)
                 vpath.pop(0)
-                cherrypy.request.params['artist_name'] = self.crumbs['artist']
-                cherrypy.request.params['song_title'] = self.crumbs['song']
+                cherrypy.request.params['id_artist'] = self.crumbs['artist']
+                cherrypy.request.params['id_song'] = self.crumbs['song']
                 return self.song.update_song
             elif 'new_song' == vpath[1]:
                 vpath.pop(0)
@@ -64,24 +61,24 @@ class RouteQualifier(object):
             elif 'delete_song' == vpath[1]:
                 vpath.pop(0)
                 vpath.pop(0)
-                cherrypy.request.params['artist_name'] = self.crumbs['artist']
-                cherrypy.request.params['song_title'] = self.crumbs['song']
+                cherrypy.request.params['id_artist'] = self.crumbs['artist']
+                cherrypy.request.params['id_song'] = self.crumbs['song']
                 return self.song.delete_song
             else:
                 vpath.pop(0)
-                cherrypy.request.params['artist_name'] = vpath.pop(0)
+                cherrypy.request.params['id_artist'] = vpath.pop(0)
                 return self.artist_title
 
         elif path_len == 4:
             vpath.pop(0)
-            cherrypy.request.params['artist_name'] = vpath.pop(0)
+            cherrypy.request.params['id_artist'] = vpath.pop(0)
             if 'album' == vpath[0]:
                 vpath.pop(0)
-                cherrypy.request.params['album_title'] = vpath.pop(0)
+                cherrypy.request.params['id_album'] = vpath.pop(0)
                 return self.album
             elif 'song' == vpath[0]:
                 vpath.pop(0)
-                cherrypy.request.params['song_title'] = vpath.pop(0)
+                cherrypy.request.params['id_song'] = vpath.pop(0)
                 return self.song
         else:
             return self.all_artists.index()
@@ -100,43 +97,37 @@ class AllArtists(object):
         return template(home_page_body(db_resp))
 
 
-@cherrypy.popargs('artist_name')
 class Artist(object):
 
     def __init__(self, home):
         self.crumbs = home.crumbs
 
     @cherrypy.expose
-    def index(self, artist_name):
-        self.crumbs['artist'] = artist_name
+    def index(self, id_artist):
+        self.crumbs['artist'] = id_artist
 
-        n_artist_name = f_from_url(urllib.parse.unquote_plus(artist_name))
+        data_artist = db_req(query_artist(id_artist))
+        data_albums = db_req(query_albums(id_artist))
+        data_x_songs = db_req(query_songs_not_in_albums(id_artist))
 
-        data_artist = db_req(query_artist(n_artist_name))
-        data_albums = db_req(query_albums(n_artist_name))
-        data_x_songs = db_req(query_songs_not_in_albums(n_artist_name))
-
-        return template(artist_page_body(artist_name, data_artist, data_albums, data_x_songs))
+        return template(artist_page_body(data_artist, data_albums, data_x_songs))
 
 
-@cherrypy.popargs('artist_name', 'album_title')
 class Album(object):
 
     def __init__(self, home):
         self.crumbs = home.crumbs
 
     @cherrypy.expose
-    def index(self, artist_name, album_title):
-        self.crumbs['artist'] = artist_name
-        self.crumbs['album'] = album_title
+    def index(self, id_artist, id_album):
+        self.crumbs['artist'] = id_artist
+        self.crumbs['album'] = id_album
 
-        n_artist_name = f_from_url(urllib.parse.unquote_plus(artist_name))
-        n_album_title = f_from_url(urllib.parse.unquote_plus(album_title))
+        data_artist = db_req(query_artist(id_artist))
+        data_album = db_req(query_album_info(id_album))
+        data_songs = db_req(query_album_songs(id_artist, id_album))
 
-        data_album = db_req(query_album_info(n_album_title))
-        data_songs = db_req(query_album_songs(n_artist_name, n_album_title))
-
-        return template(album_page_body(artist_name, album_title, data_album, data_songs))
+        return template(album_page_body(data_artist, data_album, data_songs))
 
 
 class Song(object):
@@ -145,78 +136,86 @@ class Song(object):
         self.crumbs = home.crumbs
 
     @cherrypy.expose
-    def index(self, artist_name, song_title):
-        self.crumbs['artist'] = artist_name
-        self.crumbs['song'] = song_title
+    def index(self, id_artist, id_song):
+        self.crumbs['artist'] = id_artist
+        self.crumbs['song'] = id_song
 
-        n_artist_name = f_from_url(urllib.parse.unquote_plus(artist_name))
-        n_song_title = f_from_url(urllib.parse.unquote_plus(song_title))
-
-        data_song = db_req(query_song_data(n_artist_name, n_song_title))
-        song_text = data_song[0]['song_text'].replace('\n', '<br>')
-        return template(song_page_body(artist_name, self.crumbs['album'], song_title, data_song, song_text))
+        data_artist = db_req(query_artist(id_artist))
+        data_album = db_req(query_album_info(self.crumbs['album']))
+        data_song = db_req(query_song_data(id_artist, id_song))
+        return template(song_page_body(data_artist, data_album, data_song))
 
     @cherrypy.expose
     def new_song(self,
-                 new_artist_name=None,
-                 new_artist_info=None,
-                 new_album_title=None,
-                 new_album_year=None,
-                 new_album_info=None,
-                 new_song_title=None,
-                 new_song_year=None,
-                 new_song_text=None,
-                 new_song_lang=None,
-                 new_song_track_number=None,
+                 new_artist_name='',
+                 new_artist_info='',
+                 new_album_title='',
+                 new_album_year='',
+                 new_album_info='',
+                 new_song_title='',
+                 new_song_year='',
+                 new_song_text='',
+                 new_song_lang='',
+                 new_song_track_number=1000,
                  ):  # PUT
 
         # defaults
-        d_map = 000
-
-        # add song
-        song_tuple = (new_song_title, int(new_song_year), new_song_text, new_song_lang)
-        if None not in (new_song_title, new_song_year, new_song_text, new_song_lang):
-            d_map += 100
-
-        # add album
-        album_tuple = (new_album_title, int(new_album_year), new_album_info)
-        if None not in (new_album_title, new_album_year):
-            d_map += 10
+        track_list_params = {}
 
         # add artist
         artist_tuple = (new_artist_name, new_artist_info)
-        if new_artist_name is not None:
-            d_map += 1
+        if new_artist_name != '':
+            data_artist = db_req(query_artist_by_name(new_artist_name))
+            if len(data_artist) == 0:
+                db_req(query_insert_new_artist(*artist_tuple))
+                new_artist_id = int(db_req(get_last_artist_id())[0]['id_artist'])
+                track_list_params['id_artist'] = new_artist_id
+            else:
+                track_list_params['id_artist'] = data_artist[0]['id_artist']
 
-        # add to track list
-        if d_map == 111:
-            # add song
-            db_req(query_insert_new_song(*song_tuple))
-            new_song_id = db_req(get_last_song_id())[0]['id_song']
-            # add album
-            db_req(query_insert_new_album(*album_tuple))
-            new_album_id = db_req(get_last_album_id())[0]['id_album']
-            # add artist
-            db_req(query_insert_new_artist(*artist_tuple))
-            new_artist_id = db_req(get_last_artist_id())[0]['id_artist']
+        # add song
+        song_tuple = (new_song_title, int(new_song_year), new_song_text, new_song_lang)
+        if all(song_tuple):
+            data_song = db_req(query_song_data_by_title(track_list_params['id_artist'], new_song_title))
+            if len(data_song) == 0:
+                db_req(query_insert_new_song(*song_tuple))
+                new_song_id = int(db_req(get_last_song_id())[0]['id_song'])
+                track_list_params['id_song'] = new_song_id
+            else:
+                track_list_params['id_song'] = data_song[0]['id_song']
 
-            # add track list
-            track_list_tuple = (int(new_artist_id), int(new_song_id), int(new_album_id), int(new_song_track_number))
-            db_req(query_insert_new_track_list(*track_list_tuple))
-            return template(song_page_body_new_success(new_artist_name, new_song_title))
+        # add album
+        album_tuple = (new_album_title, new_album_year, new_album_info)
+        if new_album_title != '':
+            data_album = db_req(query_album_info_by_title(new_album_title))
+            if len(data_album) == 0:
+                db_req(query_insert_new_album(*album_tuple))
+                new_album_id = int(db_req(get_last_album_id())[0]['id_album'])
+                track_list_params['id_album'] = new_album_id
+            else:
+                track_list_params['id_album'] = data_album[0]['id_album']
+
+        # add track list
+        track_list_params['track_number'] = new_song_track_number
+        db_req(query_insert_new_track_list(track_list_params))
+
+        return template(song_page_body_new_success(new_artist_name, new_song_title))
 
     @cherrypy.expose
     def update_song(self, **kwargs):  # POST
-        db_req(query_update_song_text(kwargs['song_title'], kwargs['new_song_text']))
-        return template(song_page_body_update_text(kwargs['artist_name'], kwargs['song_title']))
+        data_artist = db_req(query_artist(kwargs['id_artist']))
+        data_song = db_req(query_song_data(kwargs['id_artist'], kwargs['id_song']))
+        db_req(query_update_song_text(kwargs['id_song'], kwargs['new_song_text']))
+        return template(song_page_body_update_text(data_artist, data_song))
 
     @cherrypy.expose
-    def delete_song(self, artist_name, song_title):  # DELETE
-        # todo ! QUERY !
-        # получить Id_song
-        # удалить строку из таблицы track list
-        # удалить строку из таблицы song
-        return template(song_page_body_deleted(artist_name, song_title))
+    def delete_song(self, id_artist, id_song):  # DELETE
+        data_artist = db_req(query_artist(id_artist))
+        data_song = db_req(query_song_data(id_artist, id_song))
+
+        query_delete_song_track_list(id_artist, id_song)
+        query_delete_song_from_songs_table(id_song)
+        return template(song_page_body_deleted(data_artist, data_song))
 
 
 class Search(object):
