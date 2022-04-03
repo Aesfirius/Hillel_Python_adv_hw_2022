@@ -4,6 +4,7 @@ import sqlite3
 
 from l5_hw.queries import *
 from l5_hw.view import *
+from l5_hw.helpers import translate_to
 
 """
 /
@@ -93,7 +94,7 @@ class RouteQualifier(object):
 class AllArtists(object):
     @cherrypy.expose
     def index(self):
-        db_resp = db_req(query_artists())
+        db_resp = db_req(query_all_artists())
         return template(home_page_body(db_resp))
 
 
@@ -106,8 +107,8 @@ class Artist(object):
     def index(self, id_artist):
         self.crumbs['artist'] = id_artist
 
-        data_artist = db_req(query_artist(id_artist))
-        data_albums = db_req(query_albums(id_artist))
+        data_artist = db_req(query_artist_by_id(id_artist))
+        data_albums = db_req(query_all_albums(id_artist))
         data_x_songs = db_req(query_songs_not_in_albums(id_artist))
 
         return template(artist_page_body(data_artist, data_albums, data_x_songs))
@@ -123,7 +124,7 @@ class Album(object):
         self.crumbs['artist'] = id_artist
         self.crumbs['album'] = id_album
 
-        data_artist = db_req(query_artist(id_artist))
+        data_artist = db_req(query_artist_by_id(id_artist))
         data_album = db_req(query_album_info(id_album))
         data_songs = db_req(query_album_songs(id_artist, id_album))
 
@@ -136,14 +137,20 @@ class Song(object):
         self.crumbs = home.crumbs
 
     @cherrypy.expose
-    def index(self, id_artist, id_song):
+    def index(self, id_artist, id_song, id_album=None, translate=None):
         self.crumbs['artist'] = id_artist
         self.crumbs['song'] = id_song
 
-        data_artist = db_req(query_artist(id_artist))
-        data_album = db_req(query_album_info(self.crumbs['album']))
-        data_song = db_req(query_song_data(id_artist, id_song))
-        return template(song_page_body(data_artist, data_album, data_song))
+        data_artist = db_req(query_artist_by_id(id_artist))
+        data_album = db_req(query_album_info(id_album)) if id_album not in [0, '0', '', 'None', None] else None
+        data_song = db_req(query_song_data_by_id(id_artist, id_song))
+
+        if translate is not None:
+            translated_text = translate_to(origin_text=data_song[0]['song_text'], from_lang=data_song[0]['origin_lang'], to_lang=translate)
+        else:
+            translated_text = translate
+
+        return template(song_page_body(data_artist, data_album, data_song, translated_text=translated_text))
 
     @cherrypy.expose
     def new_song(self,
@@ -203,15 +210,15 @@ class Song(object):
 
     @cherrypy.expose
     def update_song(self, **kwargs):  # POST
-        data_artist = db_req(query_artist(kwargs['id_artist']))
-        data_song = db_req(query_song_data(kwargs['id_artist'], kwargs['id_song']))
+        data_artist = db_req(query_artist_by_id(kwargs['id_artist']))
+        data_song = db_req(query_song_data_by_id(kwargs['id_artist'], kwargs['id_song']))
         db_req(query_update_song_text(kwargs['id_song'], kwargs['new_song_text']))
         return template(song_page_body_update_text(data_artist, data_song))
 
     @cherrypy.expose
     def delete_song(self, id_artist, id_song):  # DELETE
-        data_artist = db_req(query_artist(id_artist))
-        data_song = db_req(query_song_data(id_artist, id_song))
+        data_artist = db_req(query_artist_by_id(id_artist))
+        data_song = db_req(query_song_data_by_id(id_artist, id_song))
 
         query_delete_song_track_list(id_artist, id_song)
         query_delete_song_from_songs_table(id_song)
@@ -222,8 +229,12 @@ class Search(object):
     @cherrypy.expose
     def index(self, search_text):
         if search_text == '':
-            search_text = 'Go Back and take a cup of coffee'
-        return template(search_page_body(search_text))
+            return template(search_page_body_empty())
+        else:
+            artists_data = db_req(query_search_all_artists_by_like(search_text))
+            albums_data = db_req(query_search_all_albums_by_like(search_text))
+            songs_data = db_req(query_search_all_songs_by_like(search_text))
+            return template(search_page_body(search_text, artists_data, albums_data, songs_data))
 
 
 if __name__ == '__main__':
