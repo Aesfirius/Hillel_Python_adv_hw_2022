@@ -1,0 +1,80 @@
+{% extends 'layout.html' %}
+{% block body_content %}
+<script>
+    function del_confirm() {
+        if (confirm("Are you sure you want to delete song") == true) {
+            window.open("/artist/delete_song/?id_artist={{ data_artist.id_artist }}&id_song={{ data_song.id_song }}", name="_parent");}
+        else {
+            window.location.reload();}
+    ;}
+</script>
+
+<h3>Artist: {{ data_artist.artist_name }}</h3>
+<br>
+<h3>Song: <b>"{{ data_song.song_title }}"</b> released in {{ data_song.song_year }}</h3>
+<br>
+<br>
+<form style="width: 200px" action="{{ url_for('song', id_artist=data_artist.id_artist, id_song=data_song.id_song) }}" method="GET" id="form_translate">Translate to ...
+    <div style="">
+        <div style="">
+            {% if data_album != None %}
+            <input type="hidden" form="form_translate" name="id_album" value="{{ data_album.id_album }}">
+            {% else %}
+            <input type="hidden" form="form_translate" name="id_album" value="''">
+            {% endif %}
+            <input type="text" id="translate" form="form_translate" name="translate">
+        </div>
+    </div>
+    <button style="width: 100%;" type="submit" form="form_translate" value="Translate">Translate</button>
+</form>
+<br>
+<br>
+<h3>Lyrics</h3>
+<br>
+<table style="width:100%">
+    <tr>
+        <td><b>Origin language text</b></td>
+        {% if translated_text != None %}
+        <td><b>"Translated text"</b></td>
+        {% endif %}
+    </tr>
+    <tr>
+        <td style="width:40%"><pre>{{ data_song.song_text }}</pre></td>
+        {% if translated_text != None %}
+        <td style="width:40%"><pre>{{ translated_text }}</pre></td>
+        {% endif %}
+    </tr>
+</table>
+<br>
+<br>
+<br>
+<br>
+<form action="/artist/update_song" method="post" id="form_update">
+    <div style="position: relative; height: 10;">
+        <div style="position: absolute; left: 0;">
+           <label for="new_song_text">Update Song text:</label>
+        </div>
+        <div style="position: absolute; left: 200;">
+            <input type="text" id="new_song_text" name="new_song_text">
+        </div>
+    </div>
+</form>
+<button style="width: 380px;" type="submit" form="form_update" value="Submit">Update</button>
+<br>
+<br>
+<button style="width: 380px;" type="submit" value="Delete" onclick="del_confirm()">Delete</button>
+<br>
+<br>
+{% if data_album != None %}
+<a href="/artist/{{ data_artist.id_artist }}/album/{{ data_album.id_album }}/">Back ==>> Album songs</a>
+{% else %}
+<br>
+{% endif %}
+<br>
+<br>
+<a href="/artist/{{ data_artist.id_artist }}/">Back ==>> Artist albums</a>
+<br>
+<br>
+<a href="/">Back ==>> Home</a>
+<br>
+{% endblock body_content %}
