@@ -1,8 +1,17 @@
 <br>
-<form id="add_song_form" method="POST" action="/">
+<script>
+  function new_song(form) {
+    fetch("/", {
+      method: 'put',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(document.getElementById("add_song_data").value)
+      });
+  }
+</script>
+<form id="add_song_form">
     <div style="width:380px">
-        <label for="add_song">Add JSON data for new song</label>
-        <textarea id="add_song" form="add_song_form" name="add_song_form" rows="20" cols="50"
+        <label for="add_song_data">Add JSON data for new song</label>
+        <textarea id="add_song_data" form="add_song_form" name="add_song_form" rows="20" cols="50"
                   placeholder='{
   "song_info": {
     "song_title": "",
@@ -70,6 +79,6 @@
         </textarea>
     </div>
     <br>
-    <input style="width: 380px;" type="submit" value="ADD SONG">
+    <input style="width: 380px;" onclick="new_song(this)" type="submit" value="ADD SONG">
 </form>
 <br>

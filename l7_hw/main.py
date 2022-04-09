@@ -17,16 +17,15 @@ from l7_hw.helpers import translate_to
 app = Flask(__name__, static_url_path='', template_folder='templates')
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST', 'PUT'])
 def home():
-    if request.method == 'POST':
-        data = json.loads(request.form['add_song_form'])
-        query_add_song(data)
+    if request.method == "PUT":
+        data = json.loads(request.json)
+        fn_add_song(data)
+
     db_resp = db_req(query_all_artists())
-    add_song_form = AddSong(meta={'csrf': False})
     return render_template('home.html',
-                           artists_list=db_resp,
-                           add_song_form=add_song_form)
+                           artists_list=db_resp)
 
 
 @app.route('/search/')
@@ -46,49 +45,70 @@ def search():
                            songs_data=songs_data)
 
 
-@app.route('/artist/<id_artist>/')
+@app.route('/artist/<id_artist>/', methods=['GET', 'DELETE'])
 def artist(id_artist):
-    data_artist = db_req(query_artist_by_id(id_artist))
-    data_albums = db_req(query_all_albums(id_artist))
-    data_x_songs = db_req(query_songs_not_in_albums(id_artist))
+    if request.method == 'GET':
+        data_artist = db_req(query_artist_by_id(id_artist))
+        data_albums = db_req(query_all_albums(id_artist))
+        data_x_songs = db_req(query_songs_not_in_albums(id_artist))
 
-    return template(artist_page_body(data_artist, data_albums, data_x_songs))
+        return template(artist_page_body(data_artist, data_albums, data_x_songs))
+
+    elif request.method == 'DELETE':
+        id_song = request.json.get('id_song')
+
+        fn_delete_song(id_artist, id_song)
+
+        data_artist = db_req(query_artist_by_id(id_artist))
+        data_albums = db_req(query_all_albums(id_artist))
+        data_x_songs = db_req(query_songs_not_in_albums(id_artist))
+        return template(artist_page_body(data_artist, data_albums, data_x_songs))
 
 
-@app.route('/artist/<id_artist>/album/<id_album>/')
+@app.route('/artist/<id_artist>/album/<id_album>/', methods=['GET'])
 def album(id_artist, id_album):
-    data_artist = db_req(query_artist_by_id(id_artist))
-    data_album = db_req(query_album_info(id_album))
-    data_songs = db_req(query_album_songs(id_artist, id_album))
+    if request.method == 'GET':
+        data_artist = db_req(query_artist_by_id(id_artist))
+        data_album = db_req(query_album_info(id_album))
+        data_songs = db_req(query_album_songs(id_artist, id_album))
 
-    return template(album_page_body(data_artist, data_album, data_songs))
+        return template(album_page_body(data_artist, data_album, data_songs))
 
 
-@app.route('/artist/<id_artist>/song/<id_song>/', methods=['GET', 'DELETE', 'PUT'])
+@app.route('/artist/<id_artist>/song/<id_song>/', methods=['GET', 'POST'])
 def song(id_artist, id_song):
-    if request.method == 'DELETE':
-        pass
-    else:
+    if request.method == 'GET':
         id_album = request.args.to_dict().get('id_album')
         translate = request.args.to_dict().get('translate')
         data_artist = db_req(query_artist_by_id(id_artist))[0]
         data_album = db_req(query_album_info(id_album))[0] if id_album not in [0, '0', '', 'None', None] else None
         data_song = db_req(query_song_data_by_id(id_artist, id_song))[0]
-        if request.method == 'GET':
-            if translate not in ['', 'None', None]:
-                translated_text = translate_to(origin_text=data_song['song_text'],
-                                               from_lang=data_song['origin_lang'],
-                                               to_lang=translate)
-            else:
-                translated_text = None
-            return render_template('song.html',
-                                   data_artist=data_artist,
-                                   data_album=data_album,
-                                   data_song=data_song,
-                                   translated_text=translated_text)
-        elif request.method == 'PUT':
+        if translate not in ['', 'None', None]:
+            translated_text = translate_to(origin_text=data_song['song_text'],
+                                           from_lang=data_song['origin_lang'],
+                                           to_lang=translate)
+        else:
+            translated_text = None
+        return render_template('song.html',
+                               data_artist=data_artist,
+                               data_album=data_album,
+                               data_song=data_song,
+                               translated_text=translated_text)
 
-            return template(song_page_body(data_artist, data_album, data_song, translated_text=translate))
+    elif request.method == 'POST':
+        id_album = request.form.to_dict().get('id_album')
+        new_text = request.form.to_dict().get('new_song_text')
+
+        db_req(query_update_song_text(id_song, new_text))
+
+        data_artist = db_req(query_artist_by_id(id_artist))[0]
+        data_album = db_req(query_album_info(id_album))[0] if id_album not in [0, '0', '', 'None', None] else None
+        data_song = db_req(query_song_data_by_id(id_artist, id_song))[0]
+        return render_template('song.html',
+                               data_artist=data_artist,
+                               data_album=data_album,
+                               data_song=data_song,
+                               translated_text=None)
 
 
 # @app.route('/add/', methods=['GET', 'POST'])

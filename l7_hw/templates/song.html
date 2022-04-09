@@ -3,7 +3,12 @@
 <script>
     function del_confirm() {
         if (confirm("Are you sure you want to delete song") == true) {
-            window.open("/artist/delete_song/?id_artist={{ data_artist.id_artist }}&id_song={{ data_song.id_song }}", name="_parent");}
+            fetch("/artist/{{ data_artist.id_artist }}/", {
+             method: 'delete',
+             headers: {'Content-Type': 'application/json'},
+             body: JSON.stringify({id_song: {{ data_song.id_song }}})
+            });
+            window.open("/artist/{{ data_artist.id_artist }}/", name="_parent");}
         else {
             window.location.reload();}
     ;}
@@ -14,7 +19,7 @@
 <h3>Song: <b>"{{ data_song.song_title }}"</b> released in {{ data_song.song_year }}</h3>
 <br>
 <br>
-<form style="width: 200px" action="{{ url_for('song', id_artist=data_artist.id_artist, id_song=data_song.id_song) }}" method="GET" id="form_translate">Translate to ...
+<form  method="GET" id="form_translate" style="width: 200px" action="{{ url_for('song', id_artist=data_artist.id_artist, id_song=data_song.id_song) }}">Translate to ...
     <div style="">
         <div style="">
             {% if data_album != None %}
@@ -35,7 +40,7 @@
     <tr>
         <td><b>Origin language text</b></td>
         {% if translated_text != None %}
-        <td><b>"Translated text"</b></td>
+        <td><b>Translated text</b></td>
         {% endif %}
     </tr>
     <tr>
@@ -49,20 +54,21 @@
 <br>
 <br>
 <br>
-<form action="/artist/update_song" method="post" id="form_update">
-    <div style="position: relative; height: 10;">
-        <div style="position: absolute; left: 0;">
-           <label for="new_song_text">Update Song text:</label>
-        </div>
-        <div style="position: absolute; left: 200;">
-            <input type="text" id="new_song_text" name="new_song_text">
-        </div>
+<form  id="form_update" style="width: 380px" action="{{ url_for('song', id_artist=data_artist.id_artist, id_song=data_song.id_song) }}" method="post">
+    <div style="">
+        {% if data_album != None %}
+        <input type="hidden" form="form_update" name="id_album" value="{{ data_album.id_album }}">
+        {% else %}
+        <input type="hidden" form="form_update" name="id_album" value="''">
+        {% endif %}
+        <label for="new_song_text"><b>Update Song text:</b></label>
+        <textarea id="new_song_text" form="form_update" name="new_song_text" style="height: 44px; width: 374px;"></textarea>
     </div>
+    <button style="width: 380px;" type="submit" form="form_update" value="Submit">Update</button>
 </form>
-<button style="width: 380px;" type="submit" form="form_update" value="Submit">Update</button>
 <br>
 <br>
-<button style="width: 380px;" type="submit" value="Delete" onclick="del_confirm()">Delete</button>
+<button style="width: 380px;" type="submit" value="DELETE" onclick="del_confirm()">Delete</button>
 <br>
 <br>
 {% if data_album != None %}
