@@ -17,7 +17,8 @@ from l7_hw.helpers import translate_to
 app = Flask(__name__, static_url_path='', template_folder='templates')
 
 
-@app.route('/', methods=['GET', 'POST', 'PUT'])
+@app.route('/add/', methods=['PUT'])  # для задания, но у меня реализовано через главную страницу.
+@app.route('/', methods=['GET', 'PUT'])
 def home():
     if request.method == "PUT":
         data = json.loads(request.json)
@@ -52,7 +53,10 @@ def artist(id_artist):
         data_albums = db_req(query_all_albums(id_artist))
         data_x_songs = db_req(query_songs_not_in_albums(id_artist))
 
-        return template(artist_page_body(data_artist, data_albums, data_x_songs))
+        return render_template('artist.html',
+                               data_artist=data_artist[0],
+                               data_albums=data_albums,
+                               data_x_songs=data_x_songs)
 
     elif request.method == 'DELETE':
         id_song = request.json.get('id_song')
@@ -62,7 +66,10 @@ def artist(id_artist):
         data_artist = db_req(query_artist_by_id(id_artist))
         data_albums = db_req(query_all_albums(id_artist))
         data_x_songs = db_req(query_songs_not_in_albums(id_artist))
-        return template(artist_page_body(data_artist, data_albums, data_x_songs))
+        return render_template('artist.html',
+                               data_artist=data_artist[0],
+                               data_albums=data_albums,
+                               data_x_songs=data_x_songs)
 
 
 @app.route('/artist/<id_artist>/album/<id_album>/', methods=['GET'])
@@ -72,7 +79,10 @@ def album(id_artist, id_album):
         data_album = db_req(query_album_info(id_album))
         data_songs = db_req(query_album_songs(id_artist, id_album))
 
-        return template(album_page_body(data_artist, data_album, data_songs))
+        return render_template('album.html',
+                               data_artist=data_artist[0],
+                               data_album=data_album[0],
+                               data_songs=data_songs)
 
 
 @app.route('/artist/<id_artist>/song/<id_song>/', methods=['GET', 'POST'])
@@ -109,18 +119,6 @@ def song(id_artist, id_song):
                                data_album=data_album,
                                data_song=data_song,
                                translated_text=None)
-
-
-# @app.route('/add/', methods=['GET', 'POST'])
-# def add_song():
-#     if request.method == 'POST':
-#         data = json.loads(request.form['add_song_form'])
-#         query_add_song(data)
-#     db_resp = db_req(query_all_artists())
-#     add_song_form = AddSong(meta={'csrf': False})
-#     return render_template('home.html',
-#                            artists_list=db_resp,
-#                            add_song_form=add_song_form)
 
 
 if __name__ == '__main__':
