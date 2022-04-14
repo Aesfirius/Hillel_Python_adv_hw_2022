@@ -1,0 +1,58 @@
+{% extends 'layout.html' %}
+{% block body_content %}
+{% if search_text != '' %}
+    <h3>You searching: <b>{{ search_text }}</b></h3>
+    <br>
+    <br>
+    <br>
+    <table style="width:100%">
+        <tr>
+            <td><b>Artists</b></td>
+            <td><b>Albums</b></td>
+            <td><b>Songs</b></td>
+        </tr>
+        <tr>
+            <td>
+                {% if artists_data|length > 0%}
+                    {% for artist in artists_data %}
+                    <li><a href="/artist/{{ artist.id_artist }}/">{{ artist.artist_name }}</a></li>
+                    {% endfor %}
+                {% else %}
+                <p></p>
+                {% endif %}
+            </td>
+            <td>
+                {% if albums_data|length > 0%}
+                    {% for album in albums_data %}
+                    <li><a href="/artist/{{ album.id_artist }}/album/{{ album.id_album }}/">{{ album.album_title }}</a></li>
+                    {% endfor %}
+                {% else %}
+                <p></p>
+                {% endif %}
+            </td>
+            <td>
+                {% if songs_data|length > 0 %}
+                    {% for song in songs_data %}
+                    <li><a href="/artist/{{ song.id_artist }}/song/{{ song.id_song }}/?id_album={{ song.id_album }}">{{ song.song_title }}</a></li>
+                    {% endfor %}
+                {% else %}
+                <p></p>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+    <br>
+    <br>
+    <a href="/">Back ==>> Home</a>
+    <br>
+{% else %}
+    <br>
+    <br>
+    <br>
+    <h2>Go Back and take a cup of coffee</h2>
+    <br>
+    <br>
+    <a href="/">Back ==>> Home</a>
+    <br>
+{% endif  %}
+{% endblock body_content %}

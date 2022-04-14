@@ -1,0 +1,94 @@
+{% extends 'layout.html' %}
+{% block body_content %}
+
+{% if data_album != None %}
+    {% set album_id = data_album.id_album %}
+{% else %}
+    {% set album_id = '0' %}
+{% endif %}
+<script>
+    function del_confirm() {
+        if (confirm("Are you sure you want to delete song") == true) {
+            fetch("/artist/{{ data_artist.id_artist }}/", {
+             method: 'delete',
+             headers: {'Content-Type': 'application/json'},
+             body: JSON.stringify({id_song: {{ data_song.id_song }}, id_album: {{ album_id }} })
+			 });
+            window.open("/artist/{{ data_artist.id_artist }}/", name="_parent");
+        }
+        else {
+			window.location.reload();
+        }
+    ;}
+</script>
+
+<h3>Artist: {{ data_artist.artist_name }}</h3>
+<br>
+<h3>Song: <b>"{{ data_song.song_title }}"</b> released in {{ data_song.song_year }}</h3>
+<br>
+<br>
+<form  method="GET" id="form_translate" style="width: 200px" action="{{ url_for('song', id_artist=data_artist.id_artist, id_song=data_song.id_song) }}">Translate to ...
+    <div style="">
+        <div style="">
+            {% if data_album != None %}
+            <input type="hidden" form="form_translate" name="id_album" value="{{ data_album.id_album }}">
+            {% else %}
+            <input type="hidden" form="form_translate" name="id_album" value="''">
+            {% endif %}
+            <input type="text" id="translate" form="form_translate" name="translate">
+        </div>
+    </div>
+    <button style="width: 100%;" type="submit" form="form_translate" value="Translate">Translate</button>
+</form>
+<br>
+<br>
+<h3>Lyrics</h3>
+<br>
+<table style="width:100%">
+    <tr>
+        <td><b>Origin language text</b></td>
+        {% if translated_text != None %}
+        <td><b>Translated text</b></td>
+        {% endif %}
+    </tr>
+    <tr>
+        <td style="width:40%"><pre>{{ data_song.song_text }}</pre></td>
+        {% if translated_text != None %}
+        <td style="width:40%"><pre>{{ translated_text }}</pre></td>
+        {% endif %}
+    </tr>
+</table>
+<br>
+<br>
+<br>
+<br>
+<form  id="form_update" style="width: 380px" action="{{ url_for('song', id_artist=data_artist.id_artist, id_song=data_song.id_song) }}" method="post">
+    <div style="">
+        {% if data_album != None %}
+        <input type="hidden" form="form_update" name="id_album" value="{{ data_album.id_album }}">
+        {% else %}
+        <input type="hidden" form="form_update" name="id_album" value="''">
+        {% endif %}
+        <label for="new_song_text"><b>Update Song text:</b></label>
+        <textarea id="new_song_text" form="form_update" name="new_song_text" style="height: 44px; width: 374px;"></textarea>
+    </div>
+    <button style="width: 380px;" type="submit" form="form_update" value="Submit">Update</button>
+</form>
+<br>
+<br>
+<button style="width: 380px;" type="submit" value="DELETE" onclick="del_confirm()">Delete</button>
+<br>
+<br>
+{% if data_album != None %}
+<a href="/artist/{{ data_artist.id_artist }}/album/{{ data_album.id_album }}/">Back ==>> Album songs</a>
+{% else %}
+<br>
+{% endif %}
+<br>
+<br>
+<a href="/artist/{{ data_artist.id_artist }}/">Back ==>> Artist albums</a>
+<br>
+<br>
+<a href="/">Back ==>> Home</a>
+<br>
+{% endblock body_content %}

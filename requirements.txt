@@ -3,3 +3,4 @@ requests
 translate
 flask
 Flask-WTF==1.0.1
+Flask-SQLAlchemy
