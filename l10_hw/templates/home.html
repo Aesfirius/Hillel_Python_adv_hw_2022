@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+{% block body_content %}
+    <div id="search">
+        {% include 'search_form.html' %}
+    </div>
+
+    <div id="artists_block">
+        <ul>
+        {% for artist in artists_list %}
+            <li><a href="{{ url_for('artist', id_artist=artist.id_artist) }}">{{ artist.artist_name }}</a></li>
+        {% endfor %}
+        </ul>
+    </div>
+    <div id="add_song">
+        {% include 'add_song_form.html' %}
+    </div>
+    <br>
+{% endblock body_content %}
