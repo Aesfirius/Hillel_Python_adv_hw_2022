@@ -6,6 +6,6 @@
      ports:
        - 8000:5000
      volumes:
-       - "H:\\PROJECTS\\DB\\SQLite\\Hillel_REST.db:/app/SQLite/Hillel_REST.db"
+       - "..\\Hillel_REST.db:/app/SQLite/Hillel_REST.db"
      environment:
        DB_NAME: "/app/SQLite/Hillel_REST.db"
