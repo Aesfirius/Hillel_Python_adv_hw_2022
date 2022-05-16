@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+{% block body_content %}
+    <div id="status">
+        {% if data != None %}
+        <table style="width:500px">
+            <tr>
+                <td><b>job id</b></td>
+                <td><b>job status</b></td>
+            </tr>
+            <tr>
+                <td style="width:40%"><pre>{{ data.taskID }}</pre></td>
+                <td style="width:40%"><pre>{{ data.task_status }}</pre></td>
+            </tr>
+        </table>
+            {% if data.task_status == 'SUCCESS' %}
+            <br>
+            <h3>Download new File</h3>
+            <br>
+            <a href="{{ url_for('download_file', filename=data.filename) }}" target="_blank">Download file</a>
+            <br>
+            {% endif %}
+        {% endif %}
+   </div>
+
+    <br>
+    <a href="{{ url_for('home') }}">Back Home</a>
+    <br>
+    <br>
+{% endblock body_content %}

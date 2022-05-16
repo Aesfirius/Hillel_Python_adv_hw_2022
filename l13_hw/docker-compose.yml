@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:latest
+    hostname: redis
+    ports:
+      - "6379:6379"
+  rabbit:
+    hostname: rabbit
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    hostname: web
+    command: python3 -m flask run --host=0.0.0.0
+    volumes:
+      - .:/app
+    ports:
+      - "5000:5000"
+    links:
+      - rabbit
+      - redis
+  workers:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A workers worker --loglevel INFO -P eventlet
+    volumes:
+      - .:/app
+    links:
+      - rabbit
+      - redis
+    depends_on:
+      - rabbit

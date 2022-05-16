@@ -5,3 +5,7 @@ flask
 Flask-WTF==1.0.1
 Flask-SQLAlchemy
 marshmallow
+celery[amqp,redis,auth,msgpack]
+redis
+ffmpeg-python
+eventlet
