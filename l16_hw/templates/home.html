@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+{% block body_content %}
+    {% if user.is_authenticated %}
+        <div id="coffee_sins">
+            <h1>Coffee sins per day</h1>
+            <form id="form_coffee" method=post enctype=multipart/form-data>
+                {% csrf_token %}
+                <input type="number" name=coffee_cups>
+                <input type="date" name=date>
+            </form>
+            <button id="rec_my_sin" style="width: 300px;" type="submit" form="form_coffee" value="confession">Confession</button>
+        </div>
+        <br>
+        <br>
+        <div id="list_sins_block">
+
+            <form id="form_filter" method=get enctype=multipart/form-data>
+                <input type="number" name=rows_view value=0>
+            </form>
+            <button id="show_my_sins" style="width: 300px;" type="submit" form="form_filter" value="my_sins">Show my sins</button>
+            <br>
+            <br>
+            {% if data_sins|length > 0 %}
+                <table style="width:350px">
+                    <tr>
+                        <td><b>Coffee sins count</b></td>
+                        <td><b>Date</b></td>
+                    </tr>
+                    {% for sin in data_sins %}
+                    <tr>
+                        <td style="width:40%"><pre>{{ sin.coffee_cups }}</pre></td>
+                        <td style="width:40%"><pre>{{ sin.date }}</pre></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+        </div>
+        <br>
+        <br>
+        <a href="logout" type="button" style="width:200px">Logout</a>
+    {% else %}
+        <p>Please login</p>
+        <a href="login" type="button" style="width:200px">Login</a>
+    {% endif %}
+{% endblock body_content %}
