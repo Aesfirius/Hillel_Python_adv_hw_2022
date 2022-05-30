@@ -1,3 +1,4 @@
+import json
 from django.views import View
 from django.shortcuts import render, redirect, HttpResponse
 from django.contrib.auth import authenticate, login, logout
@@ -85,10 +86,14 @@ class ItemView(View):
             i_d = item_id
         return render(request, 'item.html', {'item_data': i_d})
 
-    def post(self, request):
+    def post(self, request, item_id):
         """
         add item to basket data
         """
+        i_d = "Nothing"
+        if item_id:
+            i_d = item_id
+        print(f"item id --> {i_d}")
         return redirect('home')
 
 
@@ -97,7 +102,9 @@ class BasketView(View):
 
     """
     def get(self, request):
-        return HttpResponse('GET open basket page')
+        items_data = [{"item_id": 1, "item_cost": 3, "items_count": 2},
+                      {"item_id": 2, "item_cost": 5, "items_count": 1}]
+        return render(request, 'basket.html', {"items_data": json.dumps(items_data)})
 
 
 class CompletePurchase(View):
@@ -105,5 +112,13 @@ class CompletePurchase(View):
 
     """
     def post(self, request):
-        return HttpResponse('POST add basket data to db')
+        """
+        CompletePurchase
+        """
+        items_data = request.POST['items_data']
+        # items_data = json.loads(items_data)
+
+        return HttpResponse(f"""POST CompletePurchase
+        {items_data}
+        """)
 

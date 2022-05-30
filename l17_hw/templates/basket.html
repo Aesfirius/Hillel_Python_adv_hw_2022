@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+{% block body_content %}
+    <div>
+        <h3>data items in basket</h3>
+        <ul>
+            <li>Item 1</li>
+            <li>Item 2</li>
+        </ul>
+    </div>
+    <br>
+    <form id="complete_purchase" action="/complete_purchase/" method="POST" enctype='application/json'>
+        {% csrf_token %}
+        <input style="width: 100px;" name="items_data" type="hidden" value="{{items_data}}">
+        <input style="width: 100px;" type="submit" value="BUY Items">
+    </form>
+    <br>
+    <br>
+    <br>
+    <a href="/">Back ==>> Home</a>
+    <br>
+{% endblock body_content %}
