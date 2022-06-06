@@ -1,0 +1,16 @@
+{% extends 'layout.html' %}
+{% block body_content %}
+    <div>
+        <h3>Item data</h3>
+        <p>item id: {{ item_data.id }}</p>
+        <form id="form_item_{{2}}" action="/item/{{item_data.id}}/add/" method="POST" enctype='application/json'>
+            {% csrf_token %}
+            <input style="width: 100px;" type="submit" name="item_id" value="ADD Item {{item_data.id}}">
+        </form>
+    </div>
+    <br>
+    <br>
+    <br>
+    <a href="/">Back ==>> Home</a>
+    <br>
+{% endblock body_content %}

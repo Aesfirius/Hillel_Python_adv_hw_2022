@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+{% block body_content %}
+    <div id="search">
+        {% include 'search_form.html' %}
+    </div>
+    <div>
+        <p>Categories list</p>
+        <a href="/category/cat_i_clicked" type="button" style="width:200px">Click one of category</a>
+    </div>
+    <br>
+    <br>
+    <div>
+        <p>Basket</p>
+        <a href="/basket" type="button" style="width:200px">Open basket</a>
+    </div>
+    <br>
+    <br>
+    <br>
+    <br>
+    <a href="contacts" type="button" style="width:200px">Contacts</a>
+    <br>
+    <br>
+{% endblock body_content %}
