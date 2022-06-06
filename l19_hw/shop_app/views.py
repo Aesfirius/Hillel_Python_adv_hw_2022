@@ -102,8 +102,7 @@ class BasketView(View):
 
     """
     def get(self, request):
-        items_data = [{"id": 1, "cost": 3, "count": 2, "name": "Item 1"},
-                      {"id": 2, "cost": 5, "count": 1, "name": "Item 2"}]
+        items_data = request.session.get("basket", {})
         return render(request, 'basket.html', {"items": items_data})
 
 
@@ -115,10 +114,12 @@ class CompletePurchase(View):
         """
         CompletePurchase
         """
-        items_data = request.POST['items']
-        # items_data = json.loads(items_data)
-
-        return HttpResponse(f"""POST CompletePurchase
+        form_items_data = request.POST['items']
+        items_data = json.loads(form_items_data.replace("'", '"'))
+        with open('basket_data.json', 'w+', encoding='utf-8') as file:
+            json.dump(items_data, file)
+        return HttpResponse(f"""
+        POST CompletePurchase
         {items_data}
         """)
 

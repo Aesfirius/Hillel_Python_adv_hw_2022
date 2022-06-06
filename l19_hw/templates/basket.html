@@ -3,13 +3,13 @@
     <div>
         <h3>data items in basket</h3>
         <ul>
-            {% for item in items %}
-            <li><a href="/item/{{item.id}}/">{{item.name}}</a></li>
+            {% for item_k, item_c in items.items %}
+            <li><a href="/item/{{item_k}}/">Item id: {{item_k}}; Item count: {{item_c}}</a></li>
             {% endfor %}
         </ul>
     </div>
     <br>
-    <form id="complete_purchase" action="/complete_purchase/" method="POST" enctype='application/json'>
+    <form id="complete_purchase" action="/complete_purchase/" method="POST" enctype='multipart/form-data'>
         {% csrf_token %}
         <input style="width: 100px;" name="items" type="hidden" value="{{items}}">
         <input style="width: 100px;" type="submit" value="BUY Items">
