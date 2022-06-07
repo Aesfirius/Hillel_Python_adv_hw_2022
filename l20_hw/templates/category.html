@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+{% block body_content %}
+    <div>
+        <h3>data category</h3>
+        <p>{{ category_data }}</p>
+        <ul>
+            <li><a href="/item/1" type="button" style="width:200px">Item 1</a>
+                <form id="form_item_{{1}}" action="/item/1/add/" method="POST">
+                {% csrf_token %}
+                <input style="width: 100px;" type="submit" name="item_id" value="ADD Item 1">
+                </form>
+            </li>
+            <br>
+            <li><a href="/item/2" type="button" style="width:200px">Item 1</a>
+                <form id="form_item_{{2}}" action="/item/2/add/" method="POST">
+                {% csrf_token %}
+                <input style="width: 100px;" type="submit" name="item_id" value="ADD Item 2">
+                </form>
+            </li>
+            <br>
+        </ul>
+    </div>
+    <br>
+    <br>
+    <br>
+    <a href="/">Back ==>> Home</a>
+    <br>
+{% endblock body_content %}
