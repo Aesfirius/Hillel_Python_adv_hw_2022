@@ -1,0 +1,30 @@
+{% extends 'layout.html' %}
+{% block body_content %}
+    <div id="search">
+        {% include 'search_form.html' %}
+    </div>
+    <div>
+        <p>Categories list</p>
+        <ul>
+            {% for category in categories %}
+            <li>
+                <a href="/category/{{ category.category_name }}" type="button" style="width:200px">{{ category.category_name }}</a>
+                <br>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <br>
+    <br>
+    <div>
+        <p>Basket</p>
+        <a href="/basket" type="button" style="width:200px">Open basket</a>
+    </div>
+    <br>
+    <br>
+    <br>
+    <br>
+    <a href="contacts" type="button" style="width:200px">Contacts</a>
+    <br>
+    <br>
+{% endblock body_content %}

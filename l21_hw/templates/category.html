@@ -1,0 +1,35 @@
+{% extends 'layout.html' %}
+{% block body_content %}
+    <div>
+        <h3>DATA OF CATEGORY {{ category_data.category_name }}</h3>
+
+        <h3>sub-categories</h3>
+            <ul>
+                {% for subcategory in category_data.subcategories %}
+                    <li>
+                        <a href="/subcategory/{{ subcategory }}" type="button" style="width:200px">{{ subcategory }}</a>
+                        <br>
+                    </li>
+                {% endfor %}
+            </ul>
+        <br>
+        <h3>GOODS</h3>
+            <ul>
+            {% for item in items %}
+                <li>
+                    <a href="/item/{{ item.id }}" type="button"><button style="width: 150px;">{{ item.name }}</button></a>
+                    <form id="form_item_{{ item.id }}" action="/item/{{ item.id }}/add/" method="POST">
+                        {% csrf_token %}
+                        <input style="width: 150px;" type="submit" name="item_id" value="ADD Item {{ item.name }}">
+                    </form>
+                    <br>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <br>
+    <br>
+    <br>
+    <a href="/">Back ==>> Home</a>
+    <br>
+{% endblock body_content %}
