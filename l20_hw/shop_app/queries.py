@@ -1,4 +1,3 @@
-from shop_app import models
 from django.contrib.auth.models import User
 
 

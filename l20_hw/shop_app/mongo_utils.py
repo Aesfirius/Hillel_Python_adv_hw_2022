@@ -13,18 +13,6 @@ import pymongo
 from contextlib import ContextDecorator
 
 
-# class connect_db(ContextDecorator):
-#     def __int__(self):
-#         self.client = pymongo.MongoClient("mongodb://docker:mongopw@localhost:27017")
-#         self.db = self.client['db']
-#
-#     def __enter__(self):
-#         return self
-#
-#     def __exit__(self, *exc):
-#         return self.client.close()
-
-
 class connect_db(ContextDecorator):
     def __init__(self):
         self.login = os.environ.get('DB_USERNAME')
@@ -44,19 +32,12 @@ class connect_db(ContextDecorator):
         self.client.close()
 
 
-# def init_db():
-#     client = pymongo.MongoClient("mongodb://docker:mongopw@localhost:49153")
-#     db = client['db']
-#     return db, client
-
-@connect_db()
 def get_data(self, data, collection_name):
     collection = self.db[collection_name]
     resp = collection.find_one(data)
     return resp
 
 
-@connect_db()
 def write_data(data, collection_name):
     with connect_db() as db:
         collection = db[collection_name]

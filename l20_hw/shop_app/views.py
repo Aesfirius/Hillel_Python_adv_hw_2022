@@ -114,10 +114,12 @@ class CompletePurchase(View):
         """
         CompletePurchase
         """
+        db_data = {}
         user_id = request.user.id
         form_items_data = request.POST['items']
         items_data = json.loads(form_items_data.replace("'", '"'))
-        items_data.update({'user_id': user_id})
-        write_data(items_data, 'purchases')
-        request.session["basket"] = {}
+        db_data['user_id'] = user_id
+        db_data['p'] = items_data
+        write_data(db_data, 'purchases')
+        request.session['basket'] = {}
         return redirect('home')
