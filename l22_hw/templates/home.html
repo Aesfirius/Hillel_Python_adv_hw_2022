@@ -1,0 +1,47 @@
+{% extends 'layout.html' %}
+{% block body_content %}
+    <div id="search">
+        {% include 'search_form.html' %}
+    </div>
+    <div>
+        <p>Categories list</p>
+        <ul>
+            {% for category in categories %}
+            <li>
+                <a href="/category/{{ category.category_name }}" type="button" style="width:200px">{{ category.category_name }}</a>
+                <br>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <br>
+    <br>
+    {% if filtered_goods|length > 0 %}
+        <div>
+            <p>Filtered goods</p>
+            <ul>
+                {% for g in filtered_goods %}
+                    <li>
+                        <a href="/item/{{ g.id }}" type="button"><button style="width: 150px;">{{ g.name }}</button></a>
+                        <form id="form_item_{{ g.id }}" action="/item/{{ g.id }}/add/" method="POST">
+                            {% csrf_token %}
+                            <input style="width: 150px;" type="submit" name="item_id" value="ADD Item {{ g.name }}">
+                        </form>
+                        <br>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    <div>
+        <p>Basket</p>
+        <a href="/basket" type="button" style="width:200px">Open basket</a>
+    </div>
+    <br>
+    <br>
+    <br>
+    <br>
+    <a href="contacts" type="button" style="width:200px">Contacts</a>
+    <br>
+    <br>
+{% endblock body_content %}
