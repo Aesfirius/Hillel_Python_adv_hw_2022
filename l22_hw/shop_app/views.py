@@ -15,7 +15,6 @@ class HomeView(View):
 
     def get(self, request):
         categories = get_all(collection_name='category')
-
         return render(request, 'home.html', {'categories': categories})
 
     def post(self, request):
@@ -48,7 +47,7 @@ class UserAdminView(View):
 
     """
     def get(self, request):
-        return HttpResponse('GET user page, user purchases list')
+        return HttpResponse('GET UserAdminView')
 
 
 class SearchView(View):
@@ -56,11 +55,20 @@ class SearchView(View):
 
     """
     def get(self, request):
+        all_categories = get_all(collection_name='category')
+        keyword_ = request.GET.get('keyword')
         filter_goods_ = filter_goods(request)
-        category_ = request.GET.get('category')
-        category = category_ if len(category_) > 0 else None
+        category_ = dict(request.GET).get('category')
+        category = category_ if category_ is not None and len(category_) > 0 else None
+
+        #### тут формируем запрос в монго с $in для category
         if category is not None:
-            filter_goods_.update({'category':  re.compile(f'.*{category}.*', re.IGNORECASE)})
+            f_cat = []
+            for i in range(len(category)):
+                f_cat.append(re.compile(f'.*{category[i]}.*', re.IGNORECASE))
+
+            filter_goods_.update({'category': {'$in': f_cat}})
+        ####
         filtered_goods = get_all(filter_goods_, 'goods')
         if len(filtered_goods) > 0:
             categories_list = sorted(list(set(good['category'] for good in filtered_goods)))
@@ -68,7 +76,11 @@ class SearchView(View):
             filtered_goods = [add_id(item) for item in filtered_goods]
         else:
             categories = get_all(collection_name='category')
-        return render(request, 'home.html', {'filtered_goods': filtered_goods, 'categories': categories})
+        return render(request, 'search.html', {'keyword': keyword_,
+                                               'filtered_goods': filtered_goods,
+                                               'categories': categories,
+                                               'all_categories': all_categories
+                                               })
 
 
 class ContactsView(View):

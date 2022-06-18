@@ -1,8 +1,10 @@
 {% extends 'layout.html' %}
 {% block body_content %}
+    <div id="search">
+        {% include 'search_form.html' %}
+    </div>
     <div>
         <h3>DATA OF CATEGORY {{ category_data.category_name }}</h3>
-
         <h3>sub-categories</h3>
             <ul>
                 {% for subcategory in category_data.subcategories %}

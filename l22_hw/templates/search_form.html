@@ -5,8 +5,16 @@
         <p>Keyword<input style="float: right;" type="text" name="keyword"/></p>
         <p>Price from<input style="float: right;" type="text" name="price_from"/></p>
         <p>Price to<input style="float: right;" type="text" name="price_to"/></p>
-        <p>Category<input style="float: right;" type="text" name="category"/></p>
-
+        {% if all_categories|length > 0 %}
+            <div>Categories
+                {% for category in all_categories %}
+                     <p>{{category.category_name}}
+                        <input style="float: right;" type="checkbox" name="category" value="{{category.category_name}}"/>
+                    </p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <br>
         <input style="width: 300px;" type="submit" value="Search">
     </div>
 </form>

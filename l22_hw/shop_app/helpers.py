@@ -9,10 +9,9 @@ def add_id(dict_obj):
 def filter_goods(request):
     keyword = request.GET.get('keyword', '')
     price_from_ = request.GET.get('price_from')
-    price_from = price_from_ if len(price_from_) > 0 else None
-
+    price_from = price_from_ if price_from_ is not None and len(price_from_) > 0 else None
     price_to_ = request.GET.get('price_to')
-    price_to = price_to_ if len(price_to_) > 0 else None
+    price_to = price_to_ if price_to_ is not None and len(price_to_) > 0 else None
 
     filter_goods = {'name': re.compile(f'.*{keyword}.*', re.IGNORECASE)}
 

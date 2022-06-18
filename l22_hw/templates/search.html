@@ -1,42 +1,44 @@
 {% extends 'layout.html' %}
 {% block body_content %}
-{% if search_text != '' %}
-    <h3>You searching: <b>{{ search_text }}</b></h3>
-    <br>
-    <h3>Categories</h3>
-    {% if categories|length > 0 %}
-        <div>
-            <ul>
-                {% for category in categories %}
-                <li>{{ category }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
-    <br>
-    <br>
-    <h3>Goods</h3>
-    {% if goods|length > 0 %}
-        <div>
-            <ul>
-                {% for gg in goods %}
-                <li>{{ gg }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
-    <br>
-    <br>
-    <a href="/">Back ==>> Home</a>
-    <br>
-{% else %}
-    <br>
-    <br>
-    <br>
-    <h2>Go Back and take a cup of coffee</h2>
-    <br>
-    <br>
-    <a href="/">Back ==>> Home</a>
-    <br>
-{% endif  %}
+<div id="search">
+    {% include 'search_form.html' %}
+</div>
+<h3>You search result: <b>{{ keyword }}</b></h3>
+<br>
+<h3>Categories</h3>
+{% if categories|length > 0 %}
+    <div>
+        <ul>
+            {% for category in categories %}
+            <li>
+                <a href="/category/{{ category.category_name }}" type="button" style="width:200px">{{ category.category_name }}</a>
+                <br>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+<br>
+<br>
+{% if filtered_goods|length > 0 %}
+    <div>
+        <p>Filtered goods</p>
+        <ul>
+            {% for g in filtered_goods %}
+                <li>
+                    <a href="/item/{{ g.id }}" type="button"><button style="width: 150px;">{{ g.name }}</button></a>
+                    <form id="form_item_{{ g.id }}" action="/item/{{ g.id }}/add/" method="POST">
+                        {% csrf_token %}
+                        <input style="width: 150px;" type="submit" name="item_id" value="ADD Item {{ g.name }}">
+                    </form>
+                    <br>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+<br>
+<br>
+<a href="/">Back ==>> Home</a>
+<br>
 {% endblock body_content %}

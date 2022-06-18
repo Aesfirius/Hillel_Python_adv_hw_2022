@@ -36,9 +36,9 @@ def get_all(data=None, collection_name=None):
     with connect_db() as db:
         collection = db[collection_name]
         if data is not None:
-            resp = list(collection.find(data))
+            resp = list(collection.find(data).sort('category_name'))
         else:
-            resp = list(collection.find())
+            resp = list(collection.find().sort('category_name'))
     return resp
 
 
