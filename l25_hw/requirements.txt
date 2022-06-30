@@ -1,0 +1,6 @@
+Django
+pymongo==3.12.1
+dnspython
+motor
+tornado
+requests
