@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+{% block body_content %}
+    <div>
+        <h3>Item data</h3>
+        <p>item id: {{ item_data.id }}</p>
+        <p>item name: {{ item_data.name }}</p>
+        <p>item category: {{ item_data.category }}</p>
+        <p>item subcategory: {{ item_data.subcategory }}</p>
+        <br>
+        <br>
+        <form id="form_item_{{ item_data.id }}" action="/item/{{ item_data.id }}/add/" method="POST">
+            {% csrf_token %}
+            <input style="width: 150px;" type="submit" name="item_id" value="ADD Item {{ item_data.name }}">
+        </form>
+    </div>
+    <br>
+    <br>
+    <br>
+    <a href="/">Back ==>> Home</a>
+    <br>
+{% endblock body_content %}
