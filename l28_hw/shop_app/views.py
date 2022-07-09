@@ -1,0 +1,162 @@
+import re
+import json
+from django.views import View
+from django.shortcuts import render, redirect, HttpResponse
+from django.contrib.auth import authenticate, login, logout
+from bson.objectid import ObjectId
+from shop_app import queries as q
+from shop_app.mongo_utils import DB
+from shop_app.helpers import add_id, filter_goods
+
+
+class HomeView(View):
+    """
+    """
+
+    def get(self, request):
+        categories = DB().get_all(collection_name='category')
+        return render(request, 'home.html', {'categories': categories})
+
+    def post(self, request):
+        return render(request, 'home.html')
+
+
+class LoginView(View):
+
+    def get(self, request):
+        return render(request, 'login.html')
+
+    def post(self, request):
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is None:
+            q.create_user(username, password)
+            user = authenticate(request, username=username, password=password)
+        login(request, user)
+        return redirect('home')
+
+
+def user_logout(request):
+    logout(request)
+    return redirect('home')
+
+
+class UserAdminView(View):
+    """
+
+    """
+    def get(self, request):
+        return HttpResponse('GET UserAdminView')
+
+
+class SearchView(View):
+    """
+
+    """
+    def get(self, request):
+        all_categories = DB().get_all(collection_name='category')
+        keyword_ = request.GET.get('keyword')
+        filter_goods_ = filter_goods(request)
+        category_ = dict(request.GET).get('category')
+        category = category_ if category_ is not None and len(category_) > 0 else None
+
+        #### тут формируем запрос в монго с $in для category
+        if category is not None:
+            f_cat = []
+            for i in range(len(category)):
+                f_cat.append(re.compile(f'.*{category[i]}.*', re.IGNORECASE))
+
+            filter_goods_.update({'category': {'$in': f_cat}})
+        ####
+        filtered_goods = DB().get_all(filter_goods_, 'goods')
+        if len(filtered_goods) > 0:
+            categories_list = sorted(list(set(good['category'] for good in filtered_goods)))
+            categories = [{'category_name': cat} for cat in categories_list]
+            filtered_goods = [add_id(item) for item in filtered_goods]
+        else:
+            categories = DB().get_all(collection_name='category')
+        return render(request, 'search.html', {'keyword': keyword_,
+                                               'filtered_goods': filtered_goods,
+                                               'categories': categories,
+                                               'all_categories': all_categories
+                                               })
+
+
+class ContactsView(View):
+    """
+
+    """
+    def get(self, request):
+        return render(request, 'contacts.html')
+
+
+class CategoryView(View):
+    """
+
+    """
+    def get(self, request, category_name):
+        category_data = DB().get_data({'category_name': category_name}, 'category')
+        items = DB().get_all({'category': category_name}, 'goods')
+        items_data = [add_id(item) for item in items]
+        return render(request, 'category.html', {'category_data': category_data, 'items': items_data})
+
+
+class SubcategoryView(View):
+    """
+
+    """
+    def get(self, request, subcategory):
+        items = DB().get_all({'subcategories': subcategory}, 'goods')
+        items_data = [add_id(item) for item in items]
+        return render(request, 'subcategory.html', {'subcategory': subcategory, 'items': items_data})
+
+
+class ItemView(View):
+    """
+
+    """
+    def get(self, request, item_id):
+        item_data = {}
+        item = DB().get_data({'_id': ObjectId(item_id)}, 'goods')
+        item_data = add_id(item)
+        return render(request, 'item.html', {'item_data': item_data})
+
+    def post(self, request, item_id):
+        """
+        /item/<str:item_id>/add/
+        add item to basket data
+        """
+        basket_data = request.session.get("basket", {})
+        itm_count = basket_data.get(str(item_id), 0)
+        basket_data[str(item_id)] = itm_count + 1
+        request.session["basket"] = basket_data
+        return redirect('home')
+
+
+class BasketView(View):
+    """
+
+    """
+    def get(self, request):
+        items_data = request.session.get("basket", {})
+        return render(request, 'basket.html', {"items": items_data})
+
+
+class CompletePurchase(View):
+    """
+    Запись данных из корзины(сессии) в БД + user_id
+    """
+    def post(self, request):
+        """
+        CompletePurchase
+        """
+        db_data = {}
+        user_id = request.user.id
+        form_items_data = request.POST['items']
+        items_data = json.loads(form_items_data.replace("'", '"'))
+        db_data['user_id'] = user_id
+        db_data['p'] = items_data
+        DB().write_data(db_data, 'purchases')
+        request.session['basket'] = {}
+        return redirect('home')

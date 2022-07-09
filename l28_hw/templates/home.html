@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+{% block body_content %}
+<div id="search">
+    <form id="form_search" action="/search/" method="GET">Enter your search parameters here...
+        <br>
+        <div style="width: 300px">
+            <p>Keyword<input style="float: right;" type="text" name="keyword"/></p>
+            <input style="width: 300px;" type="submit" value="Search">
+        </div>
+    </form>
+</div>
+<div>
+    <p>Categories list</p>
+    <ul>
+        {% for category in categories %}
+        <li>
+            <a href="/category/{{ category.category_name }}" type="button" style="width:200px">{{ category.category_name }}</a>
+            <br>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+<div>
+    <p>Basket</p>
+    <a href="/basket" type="button" style="width:200px">Open basket</a>
+</div>
+<br>
+<br>
+<br>
+<br>
+<a href="contacts" type="button" style="width:200px">Contacts</a>
+<br>
+<br>
+{% endblock body_content %}
